@@ -74,7 +74,6 @@ def build_index(corpus_path, use_full_text=True):
     
     inverted_index = collections.defaultdict(list)
     doc_lengths = {}
-    doc_map = {}
     
     avg_doc_length = 0
     total_tokens = 0
@@ -85,7 +84,7 @@ def build_index(corpus_path, use_full_text=True):
             data = json.loads(line)
             doc_id = data['_id']
             
-            # Combine Title + Text (or just Title based on flag)
+            # Combine title and text
             content = data['title']
             if use_full_text:
                 content += " " + data['text']
@@ -101,13 +100,15 @@ def build_index(corpus_path, use_full_text=True):
             
             for term, tf in term_counts.items():
                 inverted_index[term].append((doc_id, tf))
-                
+            
+            # Show the progress on the processing
             if num_docs % 2000 == 0:
                 print(f"Processed {num_docs} documents...")
 
     if num_docs > 0:
         avg_doc_length = total_tokens / num_docs
     
+    # Print number of unique terms and average document length for report
     print(f"Indexing complete. {len(inverted_index)} unique terms. Avg doc len: {avg_doc_length:.2f}")
     return inverted_index, doc_lengths, avg_doc_length, num_docs
 
