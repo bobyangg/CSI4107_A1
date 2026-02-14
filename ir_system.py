@@ -5,22 +5,17 @@ import sys
 import collections
 from os import path
 
-# ==========================================
-# CONFIGURATION
-# ==========================================
 CORPUS_FILE = 'scifact/scifact/corpus.jsonl'
 QUERIES_FILE = 'scifact/scifact/queries.jsonl'
 STOPWORDS_FILE = 'List of Stopwords.html'
 OUTPUT_FILE = 'Results.txt'
 RUN_TAG = 'BM25_Run_1'
 
-# BM25 Parameters (Standard Tuned Values)
+# BM25 Parameters (Industry Standard)
 k1 = 1.2
 b = 0.75
 
-# ==========================================
-# STEP 1: PREPROCESSING
-# ==========================================
+#PREPROCESSING
 def load_stopwords(filepath):
     """Parses the HTML stopwords file."""
     stopwords = set()
@@ -66,9 +61,7 @@ def preprocess(text, stemming=True):
         
     return tokens
 
-# ==========================================
-# STEP 2: INDEXING
-# ==========================================
+#INDEXING
 def build_index(corpus_path, use_full_text=True):
     print(f"Indexing corpus from {corpus_path}...")
     
@@ -112,27 +105,31 @@ def build_index(corpus_path, use_full_text=True):
     print(f"Indexing complete. {len(inverted_index)} unique terms. Avg doc len: {avg_doc_length:.2f}")
     return inverted_index, doc_lengths, avg_doc_length, num_docs
 
-# ==========================================
-# STEP 3: RETRIEVAL & RANKING (BM25)
-# ==========================================
+#RETRIEVAL & RANKING 
 def score_query(query_tokens, inverted_index, doc_lengths, avg_doc_length, num_docs):
+    #Creates a dictionary to store scores for each document (with missing keys automatically starting at 0.0)
     scores = collections.defaultdict(float)
     
+    #Processes each word in the preprocessed query
+    #If a term doesn't exist in any document, skip it (no matches possible)
     for term in query_tokens:
         if term not in inverted_index:
             continue
             
-        # Get posting list for this term
+        
+        #Retrieves the list of documents containing this term in this format: [(doc_id1, tf1), (doc_id2, tf2), ...]
         postings = inverted_index[term]
         
-        # Calculate IDF for this term
+        #Calculate IDF
         n_docs_with_term = len(postings)
         idf = math.log((num_docs - n_docs_with_term + 0.5) / (n_docs_with_term + 0.5) + 1)
         
+
+        #Compute score for each document containing the term
         for doc_id, tf in postings:
             doc_len = doc_lengths[doc_id]
             
-            # BM25 Formula: IDF * (TF * (k1 + 1)) / (TF + k1 * (1 - b + b * (doc_len / avgdl)))
+            # BM25 Formula = IDF * (TF * (k1 + 1)) / (TF + k1 * (1 - b + b * (doc_len / avgdl)))
             numerator = tf * (k1 + 1)
             denominator = tf + k1 * (1 - b + b * (doc_len / avg_doc_length))
             
@@ -140,6 +137,7 @@ def score_query(query_tokens, inverted_index, doc_lengths, avg_doc_length, num_d
             
     return scores
 
+#Orchestrates the entire system
 def run_system(use_full_text=True, output_file=None, run_tag=None):
     if output_file is None:
         output_file = OUTPUT_FILE
@@ -159,7 +157,7 @@ def run_system(use_full_text=True, output_file=None, run_tag=None):
             q_id = q_data['_id']
             q_text = q_data['text']
             
-            # FILTER: ONLY ODD NUMBERED QUERIES
+            # filter only odd numbered queries
             if int(q_id) % 2 == 0:
                 continue
             
