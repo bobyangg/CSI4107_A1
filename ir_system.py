@@ -181,12 +181,12 @@ def run_system(use_full_text=True, output_file=None, run_tag=None):
         for q_id, doc_id, rank, score, in results:
             f.write(f"{q_id} Q0 {doc_id} {rank} {score:.4f} {run_tag}\n")
 
-    # Debug/Stats for Report
-    print("\n--- Statistics for Report ---")
+    # Debug for Report
+    print("\nStatistics for Report")
     print(f"Vocabulary Size: {len(index)}")
     print("Sample 100 tokens:", list(index.keys())[:100])
     
-    print("\n--- First 10 Answers for First 2 Queries ---")
+    print("\nFirst 10 Answers for First 2 Queries")
     unique_queries = sorted(list(set(r[0] for r in results)), key=lambda x: int(x))
     for q_id in unique_queries[:2]:
         print(f"Query {q_id}:")
@@ -198,14 +198,10 @@ if __name__ == "__main__":
     try:
         import nltk
     except ImportError:
-        print("NLTK not found. Install for better performance: pip install nltk")
+        print("NLTK not found")
     
-    print("="*60)
     print("EXPERIMENT 1: Title-Only")
-    print("="*60)
     run_system(use_full_text=False, output_file='Results_TitleOnly.txt', run_tag='BM25_TitleOnly_Run')
     
-    print("\n" + "="*60)
     print("EXPERIMENT 2: Title + Full Text")
-    print("="*60)
     run_system(use_full_text=True, output_file='Results_FullText.txt', run_tag='BM25_FullText_Run')
