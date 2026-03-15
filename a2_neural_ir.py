@@ -22,7 +22,7 @@ def load_data(candidates):
     with open(QUERIES_FILE, 'r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
-            if int(data['_id']) % 2 != 0: # Odd queries only
+            if int(data['_id']) % 2 != 0: 
                 queries[data['_id']] = data['text']
 
     # Flatten candidate list to know which docs to load
@@ -94,10 +94,7 @@ def main():
         cross_results[q_id] = ranked
 
     print_top_10(cross_results, "Cross-Encoder")
-    # Named simply "Results" as requested for the best system
     write_trec(cross_results, 'Results.txt', 'CrossEncoder')
     
-    print("\nDone! Run trec_eval.py on Results_BiEncoder.txt and Results.txt to get your MAP and P@10 scores.")
-
 if __name__ == "__main__":
     main()
